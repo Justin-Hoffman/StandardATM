@@ -1,4 +1,4 @@
-% Standard Atmosphere Properties
+% Standard Atmosphere
     % 
     % Usage: 
     %    air = standardatm(h,convert)
@@ -7,6 +7,7 @@
     %    air.T     - Temperature
     %    air.P     - Pressure
     %    air.rho   - Density
+    %    air.a     - Speed of Sound
     %    air.h     - Altitude
     %
     %    air.Tsl   - Sea Level Temperature
@@ -17,7 +18,7 @@
     %    air.delta - Ratio of P to Psl
     %    air.sigma - Ratio of rho to rhosl
     %
-    %    air.a     - Temperature Lapse Rate
+    %    air.Ta     - Temperature Lapse Rate
     %
     %
     % Units: 
@@ -28,11 +29,12 @@
 function air = standardatm(h,varargin)
     %Units are in US units, and converted before function return if
     %nargin>1
-    hb1 = 36100; % Top of Troposhere
-    hb2 = 20*3280.84; % Top of lapse rate 1 Stratosphere
-    hb3 = 32*3280.84; % Top of lapse rate 2 Stratosphere
-    hb4 = 47*3280.84; % Top of lapse rate 3 Stratosphere
-    hb5 = 51*3280.84; % Top of lapse rate 1 Mesosphere
+    hb1 = 36089; % Top of Troposhere
+    hb2 = 65617; % Top of lapse rate 1 Stratosphere
+    hb3 = 104987; % Top of lapse rate 2 Stratosphere
+    hb4 = 154199; % Top of lapse rate 3 Stratosphere
+    hb5 = 167323; % Top of lapse rate 1 Mesosphere
+    hb6 = 232940;
     if nargin > 1
        h = h*3.28084;
     end
@@ -54,7 +56,9 @@ function air = standardatm(h,varargin)
         elseif h(i) <= hb4
             [T(i) P(i) rho(i) a(i)] = stratosphere3(h(i));
         elseif h(i) <= hb5
-            [T(i) P(i) rho(i) a(i)] = mesosphere(h(i));
+            [T(i) P(i) rho(i) a(i)] = mesosphere1(h(i));
+        elseif h(i) <= hb6
+            [T(i) P(i) rho(i) a(i)] = mesosphere2(h(i));
         end
     end
     %Assemble Structure
@@ -104,22 +108,29 @@ function air = standardatm(h,varargin)
     function [T P rho a] = stratosphere2(h)
        a = 1.0/1000/(5/9*3.28084);
        [TS PS rhoS] = stratosphere1(hb2);
-       T = TS+a*h;
+       T = TS+a*(h-hb2);
        P = PS*(T/TS)^(-g/(a*R));
        rho = rhoS.*(T/TS)^(-1*(1+g/(a*R)));
     end
     function [T P rho a] = stratosphere3(h)
-       a = 1.0/1000/(5/9*3.28084);
+       a = 2.8/1000/(5/9*3.28084);
        [TS PS rhoS] = stratosphere2(hb3);
-       T = TS+a*h;
+       T = TS+a*(h-hb3);
        P = PS*(T/TS)^(-g/(a*R));
        rho = rhoS.*(T/TS)^(-1*(1+g/(a*R)));
     end
-    function [T P rho a] = mesosphere(h)
+    function [T P rho a] = mesosphere1(h)
        a = 0;
        [TT PT rhoT] = stratosphere3(hb4);
        T = TT;
-       P = PT*exp(-g*(h-hb1)/(R*T));
-       rho = rhoT*exp(-g*(h-hb1)/(R*T));
+       P = PT*exp(-g*(h-hb4)/(R*T));
+       rho = rhoT*exp(-g*(h-hb4)/(R*T));
+    end
+    function [T P rho a] = mesosphere2(h)
+       a = -0.00085344;
+       [TS PS rhoS] = mesosphere1(hb5);
+       T = TS+a*(h-hb5);
+       P = PS*(T/TS)^(-g/(a*R));
+       rho = rhoS.*(T/TS)^(-1*(1+g/(a*R)));
     end
 end

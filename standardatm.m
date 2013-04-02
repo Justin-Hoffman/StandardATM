@@ -3,7 +3,7 @@
     % Usage: 
     %    air = standardatm(h,convert)
     %
-    % Structureair is a data structure witht the following fields:
+    % Structureair is a data structure with the following fields:
     %    air.T     - Temperature
     %    air.P     - Pressure
     %    air.rho   - Density
@@ -37,6 +37,22 @@ function air = standardatm(h,varargin)
     hb6 = 232940;
     if nargin > 1
        h = h*3.28084;
+    end
+    
+    % Error Checking
+    if min(h) > hb6 || min(h) < 0
+        exception = MException('VerifyOutput:OutOfBounds',...
+            'Altitude outside the allowable limits');
+        throw(exception);
+    end
+    if max(h) > hb6
+       if min(h) <= hb6
+            display('WARNING: Max altitude out of range, truncated results returned');
+       else 
+            exception = MException('VerifyOutput:OutOfBounds',...
+             'Altitude outside the allowable limits');
+            throw(exception);
+       end  
     end
     
     g = 32.2;

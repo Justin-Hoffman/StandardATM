@@ -40,7 +40,7 @@ function air = standardatm(h,varargin)
     end
     
     % Error Checking
-    if min(h) > hb6 || min(h) < 0
+    if min(h) > hb6
         exception = MException('VerifyOutput:OutOfBounds',...
             'Altitude outside the allowable limits');
         throw(exception);
